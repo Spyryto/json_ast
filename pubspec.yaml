@@ -1,6 +1,6 @@
 name: json_ast
 version: 1.0.5
-author: Daniele “Spyryto” Zecchin <danielezecchin@gmail.com>
+author: Daniele Spyryto Zecchin <danielezecchin@gmail.com>
 description: A library that builds the abstract syntax tree for a JSON string.
 homepage: https://github.com/Spyryto/json_ast
 publish_to: none
