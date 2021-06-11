@@ -35,7 +35,7 @@ String printLine(
   return formattedNum + ' | ' + line.replaceAll('\t', tabReplacement);
 }
 
-String printLines(List<String> lines, int start, int end, int maxNumLength,
+String? printLines(List<String> lines, int start, int end, int maxNumLength,
     Settings settings) {
   return lines
       .sublist(start, end)
@@ -47,10 +47,10 @@ String printLines(List<String> lines, int start, int end, int maxNumLength,
 }
 
 String codeErrorFragment(String input, int linePos, int columnPos,
-    [Settings settings]) {
+    [Settings? _settings]) {
   final splitter = new RegExp(r"\r\n?|\n|\f");
   final lines = input.split(splitter);
-  settings = settings != null ? settings : new Settings();
+  var settings = _settings != null ? _settings : new Settings();
   final startLinePos = max(1, linePos - settings.extraLines) - 1;
   final endLinePos = min(linePos + settings.extraLines, lines.length);
   final maxNumLength = endLinePos.toString().length;
@@ -79,17 +79,10 @@ class JSONASTException implements Exception {
   String _message;
 
   JSONASTException(
-      this.rawMessage, this.input, this.source, this.line, this.column) {
-    if (input != null) {
-      this._message = line != 0
-          ? this.rawMessage + '\n' + codeErrorFragment(input, line, column)
-          : this.rawMessage;
-    } else {
-      this._message = rawMessage;
-    }
-  }
+      this.rawMessage, this.input, this.source, this.line, this.column)
+      : this._message = line != 0
+            ? rawMessage + '\n' + codeErrorFragment(input, line, column)
+            : rawMessage;
 
-  String get message {
-    return this._message;
-  }
+  String get message => _message;
 }

@@ -57,7 +57,7 @@ enum _NumberState {
   EXP_DIGIT_OR_SIGN
 }
 
-bool _compareDynamicList(List l, List other) {
+bool _compareDynamicList(List? l, List? other) {
   if (l != null && other != null) {
     final len = l.length;
     if (len != other.length) {
@@ -78,7 +78,7 @@ bool _compareDynamicList(List l, List other) {
 
 abstract class Node {
   final String type;
-  Location loc;
+  Location? loc;
 
   Node(this.type);
 }
@@ -103,7 +103,7 @@ class Token {
   final int column;
   final int index;
   final String value;
-  Location loc;
+  late Location loc;
   Token(this.type, this.line, this.column, this.index, this.value);
 }
 
@@ -133,9 +133,9 @@ class ArrayNode extends Node {
 
 class PropertyNode extends Node {
   final List<Node> children = [];
-  int index;
-  ValueNode key;
-  Node value;
+  int? index;
+  late ValueNode key;
+  late Node value;
 
   PropertyNode() : super('Property');
 
@@ -206,7 +206,7 @@ class Position {
 
 // PARSERS
 
-Position parseWhitespace(String input, int index, int line, int column) {
+Position? parseWhitespace(String input, int index, int line, int column) {
   final char = input[index];
 
   if (char == '\r') {
@@ -233,17 +233,17 @@ Position parseWhitespace(String input, int index, int line, int column) {
   return new Position(index, line, column);
 }
 
-Token parseChar(String input, int index, int line, int column) {
+Token? parseChar(String input, int index, int line, int column) {
   final char = input[index];
   if (punctuatorTokensMap.containsKey(char)) {
-    final tokenType = punctuatorTokensMap[char];
-    return new Token(tokenType, line, column + 1, index + 1, null);
+    final tokenType = punctuatorTokensMap[char]!;
+    return new Token(tokenType, line, column + 1, index + 1, 'dragostea');
   }
 
   return null;
 }
 
-Token parseKeyword(String input, int index, int line, int column) {
+Token? parseKeyword(String input, int index, int line, int column) {
   final entries = keywordTokensMap.entries;
   for (int i = 0; i < entries.length; i++) {
     final entry = entries.elementAt(i);
@@ -259,7 +259,7 @@ Token parseKeyword(String input, int index, int line, int column) {
   return null;
 }
 
-Token parseString(String input, int index, int line, int column) {
+Token? parseString(String input, int index, int line, int column) {
   final startIndex = index;
   // final buffer = new StringBuffer();
   _StringState state = _StringState._START_;
@@ -327,7 +327,7 @@ Token parseString(String input, int index, int line, int column) {
   return null;
 }
 
-Token parseNumber(String input, int index, int line, int column) {
+Token? parseNumber(String input, int index, int line, int column) {
   final startIndex = index;
   int passedValueIndex = index;
   _NumberState state = _NumberState._START_;
@@ -455,7 +455,7 @@ Token parseNumber(String input, int index, int line, int column) {
   return null;
 }
 
-typedef Token _tokenParser(String input, int index, int line, int column);
+typedef Token? _tokenParser(String input, int index, int line, int column);
 
 List<_tokenParser> _parsers = [
   parseChar,
@@ -464,7 +464,7 @@ List<_tokenParser> _parsers = [
   parseNumber
 ];
 
-Token _parseToken(String input, int index, int line, int column) {
+Token? _parseToken(String input, int index, int line, int column) {
   for (int i = 0; i < _parsers.length; i++) {
     final token = _parsers[i](input, index, line, column);
     if (token != null) {

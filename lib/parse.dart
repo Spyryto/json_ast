@@ -27,7 +27,7 @@ String parseHexEscape(String hexCode) {
   int charCode = 0;
   final minLength = min(hexCode.length, 4);
   for (int i = 0; i < minLength; i++) {
-    charCode = charCode * 16 + int.tryParse(hexCode[i], radix: 16);
+    charCode = charCode * 16 + (int.tryParse(hexCode[i], radix: 16) ?? 0);
   }
   return String.fromCharCode(charCode);
 }
@@ -66,10 +66,10 @@ String parseString(String string) {
   return result.toString();
 }
 
-ValueIndex<ObjectNode> parseObject(
+ValueIndex<ObjectNode>? parseObject(
     input, List<Token> tokenList, int index, Settings settings) {
   // object: LEFT_BRACE (property (COMMA property)*)? RIGHT_BRACE
-  Token startToken;
+  late Token startToken;
   final object = new ObjectNode();
   _ObjectState state = _ObjectState._START_;
 
@@ -92,19 +92,17 @@ ValueIndex<ObjectNode> parseObject(
       case _ObjectState.OPEN_OBJECT:
         {
           if (token.type == TokenType.RIGHT_BRACE) {
-            if (settings.loc != null) {
-              object.loc = Location.create(
-                  startToken.loc.start.line,
-                  startToken.loc.start.column,
-                  startToken.loc.start.offset,
-                  token.loc.end.line,
-                  token.loc.end.column,
-                  token.loc.end.offset,
-                  settings.source);
-            }
+            object.loc = Location.create(
+                startToken.loc.start.line,
+                startToken.loc.start.column,
+                startToken.loc.start.offset,
+                token.loc.end.line,
+                token.loc.end.column,
+                token.loc.end.offset,
+                settings.source);
             return new ValueIndex(object, index + 1);
           } else {
-            final property = parseProperty(input, tokenList, index, settings);
+            final property = parseProperty(input, tokenList, index, settings)!;
             object.children.add(property.value);
             state = _ObjectState.PROPERTY;
             index = property.index;
@@ -164,10 +162,10 @@ ValueIndex<ObjectNode> parseObject(
   throw errorEof(input, tokenList, settings);
 }
 
-ValueIndex<PropertyNode> parseProperty(
+ValueIndex<PropertyNode>? parseProperty(
     String input, List<Token> tokenList, int index, Settings settings) {
   // property: STRING COLON value
-  Token startToken;
+  late Token startToken;
   final property = new PropertyNode();
   _PropertyState state = _PropertyState._START_;
 
@@ -232,10 +230,10 @@ ValueIndex<PropertyNode> parseProperty(
   return null;
 }
 
-ValueIndex<ArrayNode> parseArray(
+ValueIndex<ArrayNode>? parseArray(
     String input, List<Token> tokenList, int index, Settings settings) {
   // array: LEFT_BRACKET (value (COMMA value)*)? RIGHT_BRACKET
-  Token startToken;
+  late Token startToken;
   final array = new ArrayNode();
   var state = _ArrayState._START_;
   Token token;
@@ -319,7 +317,7 @@ ValueIndex<ArrayNode> parseArray(
   throw errorEof(input, tokenList, settings);
 }
 
-ValueIndex<LiteralNode> parseLiteral(
+ValueIndex<LiteralNode>? parseLiteral(
     String input, List<Token> tokenList, int index, Settings settings) {
   // literal: STRING | NUMBER | TRUE | FALSE | NULL
   final token = tokenList[index];
@@ -368,12 +366,12 @@ ValueIndex<LiteralNode> parseLiteral(
   return new ValueIndex(literal, index + 1);
 }
 
-typedef ValueIndex _parserFun(
+typedef ValueIndex? _parserFun(
     String input, List<Token> tokenList, int index, Settings settings);
 
 List<_parserFun> _parsersList = [parseLiteral, parseObject, parseArray];
 
-ValueIndex _findValueIndex(
+ValueIndex? _findValueIndex(
     String input, List<Token> tokenList, int index, Settings settings) {
   for (int i = 0; i < _parsersList.length; i++) {
     final parser = _parsersList.elementAt(i);
